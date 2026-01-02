@@ -7,24 +7,15 @@ import {
   TextField,
   IconButton,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
   Tabs,
   Tab,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Paper,
 } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { HEADER_HEIGHT, SIDEBAR_WIDTH } from "@/layout/constants";
 import CreateLinkDialog from "./components/CreateLinkDialog";
 import LinksTable from "./components/LinksTable";
+import axios from "axios";
 
 export default function CreateCustomLinkPage() {
   const [link, setLink] = useState("");
@@ -41,13 +32,20 @@ export default function CreateCustomLinkPage() {
       return;
     }
 
-    // fake rule: "admin" is taken
-    const isAvailable = link !== "admin";
+    try {
+      const response = await axios.get("api/redirects", {
+        params: {
+          slug: link
+        }
+      })
 
-    if (isAvailable) {
-      setDialogOpen(true);
-    } else {
-      setError("This custom link is already taken.");
+      if (!response.data.exists) {
+        setDialogOpen(true)
+      } else {
+        setError("This custom link is already taken.");
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.details || err.message || "Something went wrong. Please try again.");
     }
   };
 
@@ -116,9 +114,15 @@ export default function CreateCustomLinkPage() {
         </Tabs>
 
         <Paper sx={{ mt: 2 }}>
-          {tab === 0 && <LinksTable />}
-          {tab === 1 && <LinksTable mine />}
+          <Box hidden={tab !== 0}>
+            <LinksTable />
+          </Box>
+
+          <Box hidden={tab !== 1}>
+            <LinksTable mine />
+          </Box>
         </Paper>
+
       </Box>
 
       {/* Create dialog */}

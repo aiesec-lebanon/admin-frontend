@@ -4,6 +4,10 @@ import axios, { AxiosError } from "axios";
 import { getValidAccessToken } from "@/server-utils/TokenManager";
 import validateUser from "@/server-utils/UserValidation";
 
+interface RedirectCheckResponse {
+  exists: boolean;
+}
+
 /* Create new redirect */
 export async function POST(req: NextRequest) {
   try {
@@ -43,7 +47,7 @@ export async function POST(req: NextRequest) {
      * 🔁 Forward request to your backend service
      */
     const response = await axios.post(
-      `${process.env.REDIRECT_SERVICE_URL}/admin/redirects`,
+      `${process.env.NEXT_PUBLIC_REDIRECT_SERVICE_URL}/admin/redirects`,
       redirectEntry,
       {
         headers: {
@@ -61,4 +65,43 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function GET(req: NextRequest) {
+  const slug = req.nextUrl.searchParams.get('slug');
+  if (!slug) {
+    return NextResponse.json(
+      { error: "Slug is required" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const access_token = await getValidAccessToken()
+
+    if (!access_token) throw Error("Access Denied! Try again later.")
+
+    const { group } = await validateUser(access_token)
+
+    const response = await axios.get<RedirectCheckResponse>(
+      `${process.env.NEXT_PUBLIC_REDIRECT_SERVICE_URL}/admin/redirects/check`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Api-Key": process.env.REDIRECT_SERVICE_AUTH_TOKEN ?? "1234",
+        },
+        params: {
+          group: group,
+          slug: slug
+        }
+      }
+    );
+
+    return NextResponse.json(response.data, {status: 200})
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "Internal server error", details: err instanceof AxiosError ? err.response?.data?.error || err.message : String(err) },
+      { status: 500 }
+    );
+  } 
 }
