@@ -1,65 +1,132 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import {
+  Box,
+  Typography,
+  TextField,
+  IconButton,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Tabs,
+  Tab,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Paper,
+} from "@mui/material";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import { HEADER_HEIGHT, SIDEBAR_WIDTH } from "@/layout/constants";
+import CreateLinkDialog from "./components/CreateLinkDialog";
+import LinksTable from "./components/LinksTable";
+
+export default function CreateCustomLinkPage() {
+  const [link, setLink] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [tab, setTab] = useState(0);
+
+  // MOCK availability check
+  const checkAvailability = async () => {
+    setError(null);
+
+    if (!link.trim()) {
+      setError("Please enter a custom link.");
+      return;
+    }
+
+    // fake rule: "admin" is taken
+    const isAvailable = link !== "admin";
+
+    if (isAvailable) {
+      setDialogOpen(true);
+    } else {
+      setError("This custom link is already taken.");
+    }
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    setLink("");        // ✅ reset input
+    setError(null);     // optional: clear errors
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <Box
+      component="main"
+      sx={{
+        ml: `${SIDEBAR_WIDTH}px`,
+        mt: `${HEADER_HEIGHT}px`,
+        p: 4,
+      }}
+    >
+      {/* Title */}
+      <Typography variant="h4" fontWeight={600} gutterBottom>
+        Create a custom link
+      </Typography>
+
+      {/* Link input section */}
+      <Box
+        sx={{
+          maxWidth: 500,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          mt: 2,
+        }}
+      >
+        <TextField
+          fullWidth
+          label="Custom link"
+          placeholder="my-awesome-link"
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <IconButton
+          color="primary"
+          onClick={checkAvailability}
+          sx={{
+            height: 56,
+            width: 56,
+          }}
+        >
+          <CheckCircleOutlineIcon />
+        </IconButton>
+      </Box>
+
+      {/* Error alert */}
+      {error && (
+        <Alert severity="error" sx={{ mt: 2, maxWidth: 500 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Tabs section */}
+      <Box sx={{ mt: 5 }}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+          <Tab label="All custom links" />
+          <Tab label="Created by me" />
+        </Tabs>
+
+        <Paper sx={{ mt: 2 }}>
+          {tab === 0 && <LinksTable />}
+          {tab === 1 && <LinksTable mine />}
+        </Paper>
+      </Box>
+
+      {/* Create dialog */}
+      <CreateLinkDialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        link={link}
+      />
+    </Box>
   );
 }
