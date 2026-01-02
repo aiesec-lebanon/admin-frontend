@@ -9,7 +9,8 @@ export function proxy(req: NextRequest) {
         pathname.startsWith("/login") ||
         pathname.startsWith("/api/auth") ||
         pathname.startsWith("/_next") ||
-        pathname.startsWith("/favicon.ico")
+        pathname.startsWith("/favicon.ico") ||
+        pathname.startsWith("/unauthorized")
     ) {
         return NextResponse.next();
     }
@@ -31,6 +32,6 @@ export const config = {
      * - /api/auth/*
      * - static files
      */
-    "/((?!login|api/auth|_next/static|_next/image|favicon.ico).*)",
+    "/((?!login|api/auth|unauthorized|_next/static|_next/image|favicon.ico).*)",
   ],
 };
