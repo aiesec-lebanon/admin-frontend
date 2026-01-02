@@ -1,6 +1,7 @@
 "use client";
 
 import React, { SetStateAction, useState } from "react";
+import { mutate } from "swr";
 import {
   Box,
   Stack,
@@ -73,8 +74,12 @@ export default function LinkForm({
 
     try {
       await onSubmit(values);
+
+      mutate((key) => 
+        typeof key === "string" && key.startsWith("/api/get-redirect-list")
+      );
     } catch (err: any) {
-      console.error(err);
+      // console.error(err);
       setError(err.response?.data?.details || err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);

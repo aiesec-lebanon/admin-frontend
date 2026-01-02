@@ -9,6 +9,19 @@ export interface RedirectEntry {
   notes?: string;
 }
 
+export interface RedirectListItem {
+  key: string;
+  data: RedirectEntry;
+}
+
+export interface PaginatedRedirectResponse {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  items: RedirectListItem[];
+}
+
 export interface TokenResponse {
   access_token: string;
   token_type: string;
