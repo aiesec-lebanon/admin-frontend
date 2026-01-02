@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { RedirectEntry } from "@/layout/types";
 import axios, { AxiosError } from "axios";
+import { getValidAccessToken } from "@/server-utils/TokenManager";
+import validateUser from "@/server-utils/UserValidation";
 
 /* Create new redirect */
 export async function POST(req: NextRequest) {
@@ -20,18 +22,21 @@ export async function POST(req: NextRequest) {
      * 🔐 AUTH CONTEXT (example)
      * Replace this with your real auth logic
      */
-    const user = {
-      id: "Tharindu Wijekoon",
-      group: "r",
-    };
+    const access_token = await getValidAccessToken()
+
+    if (!access_token) throw Error("Access Denied! Try again later.")
+
+    const { isValid, user, group } = await validateUser(access_token)
+
+    if (!isValid || !user) throw Error("Access Denied! Not a valid user.")
 
     const redirectEntry: RedirectEntry = {
       target,
       slug,
       title,
       notes,
-      group: user.group,
-      createdBy: user.id,
+      group: group,
+      createdBy: user?.full_name,
     };
 
     /**

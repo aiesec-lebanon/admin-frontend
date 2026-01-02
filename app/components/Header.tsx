@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { HEADER_HEIGHT, SIDEBAR_WIDTH } from "@/layout/constants";
+import { useAuth } from "../context/AuthContext";
 
 type HeaderProps = {
   userName?: string;
@@ -14,11 +15,8 @@ type HeaderProps = {
   onLogout: () => void;
 };
 
-export default function Header({
-  userName = "User",
-  profileImageUrl,
-  onLogout,
-}: HeaderProps) {
+export default function Header() {
+  const { user, logout } = useAuth()
   return (
     <AppBar
       position="fixed"
@@ -42,15 +40,15 @@ export default function Header({
 
         <Box display="flex" alignItems="center" gap={2}>
           <Avatar
-            src={profileImageUrl}
-            alt={userName}
+            src={user?.profile_photo}
+            alt={user?.full_name}
             sx={{ width: 32, height: 32 }}
           />
           <Button
             variant="outlined"
             size="small"
             color="inherit"
-            onClick={onLogout}
+            onClick={logout}
             sx={{ textTransform: "none" }}
           >
             Logout

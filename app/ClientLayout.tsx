@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthProvider } from "@/app/context/AuthContext";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 
@@ -8,20 +9,11 @@ export default function ClientLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const handleLogout = () => {
-    console.log("logout");
-    // clear auth, redirect, etc.
-  };
-
   return (
-    <>
+    <AuthProvider>
       <Sidebar />
-      <Header
-        userName="Tharindu"
-        profileImageUrl="/profile.jpg"
-        onLogout={handleLogout}
-      />
+      <Header />
       {children}
-    </>
+    </AuthProvider>
   );
 }
