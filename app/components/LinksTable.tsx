@@ -110,7 +110,7 @@ export default function LinksTable({ mine = false }: Props) {
               <TableCell>{item.data.title ?? "-"}</TableCell>
               <TableCell>{item.data.createdBy}</TableCell>
               <TableCell>
-                {new Date(item.data.createdAt).toLocaleString()}
+                {new Date(item.data.createdAt ?? '').toLocaleString()}
               </TableCell>
 
               <TableCell
