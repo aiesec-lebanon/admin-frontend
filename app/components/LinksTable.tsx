@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import {
   Box,
   Table,
@@ -18,6 +18,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { PaginatedRedirectResponse } from "@/layout/types";
+import axios from "axios";
 
 type Props = {
   mine?: boolean;
@@ -66,6 +67,29 @@ export default function LinksTable({ mine = false }: Props) {
     }
   };
 
+  const handleDelete = async (key: string) => {
+    const [group, slug] = key.split('/');
+    
+    if (!group || !slug) {
+      console.error("Invalid key format");
+      return;
+    }
+
+    try {
+      axios.delete(
+        'api/redirects',
+        {
+          params: { group, slug }
+        }
+      );
+      
+      mutate((key) => 
+        typeof key === "string" && key.startsWith("/api/get-redirect-list")
+      );
+    } catch (err) {
+      console.error("Failed to delete:", err);
+    }
+  };
 
   return (
     <Paper sx={{ width: "100%", overflowX: "auto" }}>
@@ -140,7 +164,10 @@ export default function LinksTable({ mine = false }: Props) {
                 </Tooltip>
 
                 <Tooltip title="Delete">
-                  <IconButton size="small" color="error">
+                  <IconButton 
+                    size="small" 
+                    color="error"
+                    onClick={() => handleDelete(item.key)}>
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>

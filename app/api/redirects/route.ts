@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     if (!target || !slug) {
       return NextResponse.json(
-        { error: "target and slug are required" },
+        { error: "Bad Request", details: "target and slug are required" },
         { status: 400 }
       );
     }
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug');
   if (!slug) {
     return NextResponse.json(
-      { error: "Slug is required" },
+      { error: "Bad Request", details: "Slug is required" },
       { status: 400 }
     );
   }
@@ -104,4 +104,102 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   } 
+}
+
+export async function PUT(req: NextRequest) {
+  const slug = req.nextUrl.searchParams.get('slug');
+  const old_group = req.nextUrl.searchParams.get('group');
+
+  if (!slug || !old_group) {
+    return NextResponse.json(
+      { error: "Bad Request", details: "group and slug are required" },
+      { status: 400 }
+    );
+  }
+
+  try {
+
+    const body = await req.json();
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "Bad Request", details: "No changes provided" },
+        { status: 400 }
+      );
+    }
+
+    const { target, title, notes, new_slug } = body;
+
+    const access_token = await getValidAccessToken()
+
+    if (!access_token) throw Error("Access Denied! Try again later.")
+
+    const { isValid, user, group } = await validateUser(access_token)
+
+    if (!isValid || !user) throw Error("Access Denied! Not a valid user.")
+
+    const updateData: Partial<RedirectEntry> = {
+      target,
+      title,
+      notes,
+      slug: new_slug,
+      group: old_group == group ? undefined : group, // only change group if different
+    };
+
+    const response = await axios.put(
+      `${process.env.NEXT_PUBLIC_REDIRECT_SERVICE_URL}/admin/redirects/${old_group}/${slug}`,
+      updateData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Api-Key": process.env.REDIRECT_SERVICE_AUTH_TOKEN ?? "1234",
+        },
+      }
+    );
+
+    return NextResponse.json(response.data, {status: 200})
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "Internal server error", details: err instanceof AxiosError ? err.response?.data?.error || err.message : String(err) },
+      { status: 500 }
+    );
+  }  
+}
+
+export async function DELETE(req: NextRequest) {
+  const slug = req.nextUrl.searchParams.get('slug');
+  const group = req.nextUrl.searchParams.get('group');
+
+  if (!slug || !group) {
+    return NextResponse.json(
+      { error: "Bad Request", details: "group and slug are required" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const access_token = await getValidAccessToken()
+
+    if (!access_token) throw Error("Access Denied! Try again later.")
+
+    const { isValid, user } = await validateUser(access_token)
+
+    if (!isValid || !user) throw Error("Access Denied! Not a valid user.")
+
+    const response = await axios.delete(
+      `${process.env.NEXT_PUBLIC_REDIRECT_SERVICE_URL}/admin/redirects/${group}/${slug}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Api-Key": process.env.REDIRECT_SERVICE_AUTH_TOKEN ?? "1234",
+        },
+      }
+    );
+
+    return NextResponse.json(response.data, {status: 200})
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "Internal server error", details: err instanceof AxiosError ? err.response?.data?.error || err.message : String(err) },
+      { status: 500 }
+    );
+  }
 }
