@@ -32,6 +32,6 @@ export const config = {
      * - /api/auth/*
      * - static files
      */
-    "/((?!login|api/auth|unauthorized|_next/static|_next/image|favicon.ico).*)",
+    "/((?!login|api/auth|unauthorized|_next/static|_next/image|favicon.ico|human.png).*)",
   ],
 };
